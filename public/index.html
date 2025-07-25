@@ -63,6 +63,28 @@
       <div id="coursesList" class="courses-grid"></div>
     </section>
 
+    <!-- Course Details -->
+    <section id="courseDetails" class="page">
+      <button id="backToCourses" class="back-button">← Back to Courses</button>
+      <div id="courseContent"></div>
+      <div class="feedback-section">
+        <h3>Course Feedback</h3>
+        <div id="feedbackList"></div>
+        <div id="addFeedbackForm" style="display: none;">
+          <h4>Add Your Feedback</h4>
+          <div class="rating">
+            <span class="star" data-rating="1">★</span>
+            <span class="star" data-rating="2">★</span>
+            <span class="star" data-rating="3">★</span>
+            <span class="star" data-rating="4">★</span>
+            <span class="star" data-rating="5">★</span>
+            <span id="ratingValue">0</span>/5
+          </div>
+          <textarea id="feedbackComment" placeholder="Your comments (optional)"></textarea>
+          <button id="submitFeedback">Submit Feedback</button>
+        </div>
+      </div>
+    </section>
 
 
   <script src="app.js"></script>
