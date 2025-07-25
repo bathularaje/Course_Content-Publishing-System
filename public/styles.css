@@ -51,3 +51,61 @@ button:hover {
   background-color: #5a6268;
 }
 
+/* Header */
+header {
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+header h1 {
+  font-size: 24px;
+  color: #007bff;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+}
+
+nav ul li {
+  margin-left: 20px;
+}
+
+nav ul li a {
+  color: #333;
+  font-weight: 500;
+}
+
+nav ul li a:hover {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.auth-buttons button {
+  margin-left: 10px;
+}
+
+#logoutBtn {
+  background-color: #dc3545;
+}
+
+#logoutBtn:hover {
+  background-color: #c82333;
+}
+
+#userInfo {
+  margin-left: 10px;
+  font-weight: 500;
+}
+
