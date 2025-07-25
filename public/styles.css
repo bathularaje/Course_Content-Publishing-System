@@ -108,3 +108,50 @@ nav ul li a:hover {
   margin-left: 10px;
   font-weight: 500;
 }
+
+/* Main Content */
+main {
+  padding: 40px 0;
+  min-height: calc(100vh - 140px);
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+section h2 {
+  margin-bottom: 20px;
+  color: #343a40;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
+}
+
+/* Home Page */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.feature {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.feature:hover {
+  transform: translateY(-5px);
+}
+
+.feature h3 {
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
