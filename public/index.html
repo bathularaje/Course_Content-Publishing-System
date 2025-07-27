@@ -86,6 +86,43 @@
       </div>
     </section>
 
+    <!-- Publish Content Page -->
+    <section id="publish" class="page">
+      <h2>Publish Course Content</h2>
+      <div id="publishForm" style="display: none;">
+        <div class="form-group">
+          <label for="courseTitle">Course Title</label>
+          <input type="text" id="courseTitle" required>
+        </div>
+        <div class="form-group">
+          <label for="courseDescription">Description</label>
+          <textarea id="courseDescription" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="courseCategory">Category</label>
+          <select id="courseCategory">
+            <option value="Programming">Programming</option>
+            <option value="Web Development">Web Development</option>
+            <option value="Data Science">Data Science</option>
+          </select>
+        </div>
+        <div id="contentSections">
+          <h3>Content Sections</h3>
+          <div class="content-section">
+            <input type="text" placeholder="Section Title" class="section-title">
+            <textarea placeholder="Section Content" class="section-content"></textarea>
+          </div>
+        </div>
+        <button id="addSection">+ Add Section</button>
+        <button id="publishCourse">Publish Course</button>
+      </div>
+      <div id="loginPrompt">
+        <p>Please login as an instructor to publish content.</p>
+        <button id="goToLogin">Login</button>
+      </div>
+    </section>
+
+  
 
   <script src="app.js"></script>
 </body>
