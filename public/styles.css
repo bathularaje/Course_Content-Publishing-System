@@ -155,3 +155,148 @@ section h2 {
   margin-bottom: 10px;
 }
 
+/* Courses Page */
+.course-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.course-filters input,
+.course-filters select {
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.course-filters input {
+  flex-grow: 1;
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.course-card {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+}
+
+.course-card-content {
+  padding: 20px;
+}
+
+.course-card h3 {
+  margin-bottom: 10px;
+  color: #343a40;
+}
+
+.course-card p {
+  color: #6c757d;
+  margin-bottom: 15px;
+}
+
+.course-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #6c757d;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* Course Details */
+#courseContent {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.course-header {
+  margin-bottom: 20px;
+}
+
+.course-header h2 {
+  border-bottom: none;
+}
+
+.course-header .meta {
+  color: #6c757d;
+  margin-bottom: 10px;
+}
+
+.course-section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.course-section:last-child {
+  border-bottom: none;
+}
+
+.course-section h3 {
+  margin-bottom: 10px;
+  color: #343a40;
+}
+
+/* Feedback */
+.feedback-section {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-item {
+  padding: 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.feedback-item:last-child {
+  border-bottom: none;
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.feedback-rating {
+  color: #ffc107;
+}
+
+.rating {
+  margin-bottom: 15px;
+}
+
+.star {
+  color: #e0e0e0;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.star.active {
+  color: #ffc107;
+}
+
+#feedbackComment {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  min-height: 100px;
+}
+
