@@ -57,3 +57,25 @@ CREATE TABLE course_feedback (
     UNIQUE KEY unique_feedback (course_id, user_id)
 );
 
+-- Course enrollments table
+CREATE TABLE course_enrollments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    course_id INT NOT NULL,
+    user_id INT NOT NULL,
+    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP NULL,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE KEY unique_enrollment (course_id, user_id)
+);
+
+-- Insert default admin user
+INSERT INTO users (name, email, password, role) VALUES
+('Admin', 'admin@example.com', '$2b$10$XKXz0Zv5s5K5K5K5K5K5K.K5K5K5K5K5K5K5K5K5K5K5K5K5K5', 'admin');
+
+-- Insert default categories
+INSERT INTO categories (name, description) VALUES
+('Programming', 'Learn coding and software development'),
+('Design', 'Explore graphic and web design'),
+('Business', 'Discover business and entrepreneurship'),
+('Marketing', 'Master digital marketing strategies');
