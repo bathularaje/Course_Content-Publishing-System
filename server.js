@@ -32,3 +32,39 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
+
+
+// USER API
+
+// Register new user
+app.post('/api/auth/register', async (req, res) => {
+  const { name, email, password, role } = req.body;
+  
+  if (!name || !email || !password) {
+    return res.status(400).json({ success: false, message: 'Please provide name, email, and password' });
+  }
+  
+  try {
+    const [existingUsers] = await promisePool.query('SELECT * FROM users WHERE email = ?', [email]);
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ success: false, message: 'Email already in use' });
+    }
+    
+    const [result] = await promisePool.query(
+      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+      [name, email, password, role || 'student']
+    );
+    
+    const [newUser] = await promisePool.query('SELECT * FROM users WHERE id = ?', [result.insertId]);
+    const { password: _, ...userWithoutPassword } = newUser[0];
+    res.status(201).json({ success: true, data: userWithoutPassword });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
