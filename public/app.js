@@ -102,10 +102,147 @@ function navigateTo(pageId) {
 
 // API Functions
 
+// Fetch all courses
+async function fetchCourses() {
+  try {
+    const response = await fetch('/api/courses');
+    const data = await response.json();
+    
+    if (data.success) {
+      courses = data.data;
+      renderCourses(courses);
+    }
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+  }
+}
 
+// Fetch course details
+async function fetchCourseDetails(courseId) {
+  try {
+    const response = await fetch(`/api/courses/${courseId}`);
+    const data = await response.json();
+    
+    if (data.success) {
+      currentCourse = data.data;
+      renderCourseDetails(currentCourse);
+      fetchCourseFeedback(courseId);
+      navigateTo('courseDetails');
+    }
+  } catch (error) {
+    console.error('Error fetching course details:', error);
+  }
+}
+
+// Fetch course feedback
+async function fetchCourseFeedback(courseId) {
+  try {
+    const response = await fetch(`/api/courses/${courseId}/feedback`);
+    const data = await response.json();
+    
+    if (data.success) {
+      renderFeedback(data.data);
+    }
+  } catch (error) {
+    console.error('Error fetching feedback:', error);
+  }
+}
+
+
+
+
+// Publish course
+async function publishCourseHandler() {
+  if (!currentUser || (currentUser.role !== 'instructor' && currentUser.role !== 'admin')) {
+    alert('You must be logged in as an instructor to publish courses');
+    return;
+  }
+  
+  const title = document.getElementById('courseTitle').value;
+  const description = document.getElementById('courseDescription').value;
+  const category = document.getElementById('courseCategory').value;
+  
+  if (!title || !description) {
+    alert('Please fill in all required fields');
+    return;
+  }
+  
+  const contentSectionElements = document.querySelectorAll('.content-section');
+  const content = [];
+  
+  contentSectionElements.forEach(section => {
+    const title = section.querySelector('.section-title').value;
+    const text = section.querySelector('.section-content').value;
+    
+    if (title && text) {
+      content.push({ title, text });
+    }
+  });
+  
+  try {
+    const response = await fetch('/api/courses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        instructor: currentUser.name,
+        category,
+        content
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('Course published successfully');
+      resetPublishForm();
+      navigateTo('courses');
+    }
+  } catch (error) {
+    console.error('Error publishing course:', error);
+  }
+}
 
 // Auth Functions
 
+// Login
+async function login() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  
+  if (!email || !password) {
+    alert('Please fill in all fields');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      currentUser = data.data;
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      updateAuthUI();
+      closeModal(loginModal);
+      alert('Logged in successfully');
+    } else {
+      alert(data.message || 'Login failed');
+    }
+  } catch (error) {
+    console.error('Error logging in:', error);
+    alert('Login failed');
+  }
+}
 
 // Register
 async function register() {
@@ -151,6 +288,82 @@ function logout() {
   navigateTo('home');
 }
 
+// Render Functions
+
+// Render courses list
+function renderCourses(coursesData) {
+  coursesList.innerHTML = '';
+  
+  if (coursesData.length === 0) {
+    coursesList.innerHTML = '<p>No courses found</p>';
+    return;
+  }
+  
+  coursesData.forEach(course => {
+    const courseCard = document.createElement('div');
+    courseCard.className = 'course-card';
+    courseCard.innerHTML = `
+      <div class="course-card-content">
+        <h3>${course.title}</h3>
+        <p>${course.description}</p>
+        <div class="course-meta">
+          <span>Instructor: ${course.instructor}</span>
+          <span>Category: ${course.category}</span>
+        </div>
+        <button class="view-course" data-id="${course.id}">View Course</button>
+      </div>
+    `;
+    
+    coursesList.appendChild(courseCard);
+  });
+  
+  // Add event listeners to view course buttons
+  document.querySelectorAll('.view-course').forEach(button => {
+    button.addEventListener('click', () => {
+      const courseId = button.getAttribute('data-id');
+      fetchCourseDetails(courseId);
+    });
+  });
+}
+
+// Render course details
+function renderCourseDetails(course) {
+  courseContent.innerHTML = `
+    <div class="course-header">
+      <h2>${course.title}</h2>
+      <div class="meta">
+        <p>Instructor: ${course.instructor}</p>
+        <p>Category: ${course.category}</p>
+      </div>
+      <p>${course.description}</p>
+    </div>
+    <div class="course-content">
+      <h3>Course Content</h3>
+      ${course.content.map(section => `
+        <div class="course-section">
+          <h3>${section.title}</h3>
+          <p>${section.text}</p>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+
+
+// Modal Functions
+
+// Open modal
+function openModal(modal) {
+  modal.style.display = 'block';
+}
+
+// Close modal
+function closeModal(modal) {
+  modal.style.display = 'none';
+}
+
+// Event Listeners
 
 // Navigation
 navLinks.forEach(link => {
@@ -161,7 +374,35 @@ navLinks.forEach(link => {
   });
 });
 
+// Back to courses
+backToCourses.addEventListener('click', () => {
+  navigateTo('courses');
+});
 
+// Course search and filter
+courseSearch.addEventListener('input', filterCourses);
+categoryFilter.addEventListener('change', filterCourses);
+
+// Rating stars
+stars.forEach(star => {
+  star.addEventListener('click', () => {
+    const rating = parseInt(star.getAttribute('data-rating'));
+    selectedRating = rating;
+    ratingValue.textContent = rating;
+    
+    // Update active stars
+    stars.forEach(s => {
+      if (parseInt(s.getAttribute('data-rating')) <= rating) {
+        s.classList.add('active');
+      } else {
+        s.classList.remove('active');
+      }
+    });
+  });
+});
+
+// Submit feedback
+submitFeedback.addEventListener('click', submitFeedbackHandler);
 
 // Add content section
 addSection.addEventListener('click', addContentSection);
