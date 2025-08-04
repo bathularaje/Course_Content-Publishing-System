@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 // Create Express app
@@ -82,7 +82,38 @@ app.delete('/api/courses/:id', (req, res) => {
   res.json({ success: true, message: 'Course deleted successfully' });
 });
 
+// FEEDBACK API
 
+// Add feedback to a course
+app.post('/api/courses/:id/feedback', (req, res) => {
+  const course = courses.find(c => c.id === parseInt(req.params.id));
+  if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+  
+  const { userId, rating, comment } = req.body;
+  
+  if (!userId || !rating) {
+    return res.status(400).json({ success: false, message: 'Please provide userId and rating' });
+  }
+  
+  const newFeedback = {
+    id: course.feedback.length + 1,
+    userId,
+    rating,
+    comment,
+    createdAt: new Date().toISOString()
+  };
+  
+  course.feedback.push(newFeedback);
+  res.status(201).json({ success: true, data: newFeedback });
+});
+
+// Get all feedback for a course
+app.get('/api/courses/:id/feedback', (req, res) => {
+  const course = courses.find(c => c.id === parseInt(req.params.id));
+  if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+  
+  res.json({ success: true, data: course.feedback });
+});
 
 // USER API
 

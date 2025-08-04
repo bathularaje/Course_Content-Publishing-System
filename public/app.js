@@ -148,8 +148,91 @@ async function fetchCourseFeedback(courseId) {
   }
 }
 
+// Fetch all feedback
+async function fetchAllFeedback() {
+  try {
+    const allFeedback = [];
+    
+    for (const course of courses) {
+      const response = await fetch(`/api/courses/${course.id}/feedback`);
+      const data = await response.json();
+      
+      if (data.success && data.data.length > 0) {
+        data.data.forEach(feedback => {
+          allFeedback.push({
+            ...feedback,
+            courseName: course.title
+          });
+        });
+      }
+    }
+    
+    renderAllFeedback(allFeedback);
+  } catch (error) {
+    console.error('Error fetching all feedback:', error);
+  }
+}
 
+// Submit feedback 
+async function submitFeedbackHandler() {
+  if (!currentUser) {
+    alert('Please login to submit feedback');
+    return;
+  }
+  
+  if (selectedRating === 0) {
+    alert('Please select a rating');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/courses/${currentCourse.id}/feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: currentUser.id,
+        rating: selectedRating,
+        comment: feedbackComment.value
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('Feedback submitted successfully');
+      fetchCourseFeedback(currentCourse.id);
+      resetFeedbackForm();
+    }
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+  }
+}
 
+// Render feedback (updated to use userName from server)
+function renderFeedback(feedbackData) {
+  feedbackList.innerHTML = '';
+  
+  if (feedbackData.length === 0) {
+    feedbackList.innerHTML = '<p>No feedback yet</p>';
+    return;
+  }
+  
+  feedbackData.forEach(feedback => {
+    const feedbackItem = document.createElement('div');
+    feedbackItem.className = 'feedback-item';
+    feedbackItem.innerHTML = `
+      <div class="feedback-header">
+        <span class="user">${feedback.userName || 'Anonymous'}</span>
+        <span class="rating">${'★'.repeat(feedback.rating)}${'☆'.repeat(5 - feedback.rating)}</span>
+      </div>
+      <p>${feedback.comment || 'No comment'}</p>
+    `;
+    
+    feedbackList.appendChild(feedbackItem);
+  });
+}
 
 // Publish course
 async function publishCourseHandler() {
