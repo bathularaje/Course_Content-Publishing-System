@@ -14,6 +14,7 @@
         <ul>
           <li><a href="#" class="nav-link" data-page="home">Home</a></li>
           <li><a href="#" class="nav-link" data-page="courses">Courses</a></li>
+          <li><a href="#" class="nav-link" data-page="myCourses">My Courses</a></li>
           <li><a href="#" class="nav-link" data-page="publish">Publish Content</a></li>
           <li><a href="#" class="nav-link" data-page="feedback">Feedback</a></li>
         </ul>
@@ -67,6 +68,10 @@
     <section id="courseDetails" class="page">
       <button id="backToCourses" class="back-button">← Back to Courses</button>
       <div id="courseContent"></div>
+      <div id="enrollmentSection" style="margin-top: 20px;">
+        <button id="enrollButton" style="display: none;">Enroll in this Course</button>
+        <p id="enrollmentStatus" style="display: none;">You are enrolled in this course</p>
+      </div>
       <div class="feedback-section">
         <h3>Course Feedback</h3>
         <div id="feedbackList"></div>
@@ -111,6 +116,21 @@
           <div class="content-section">
             <input type="text" placeholder="Section Title" class="section-title">
             <textarea placeholder="Section Content" class="section-content"></textarea>
+            <div class="section-files">
+              <h4>Section Files</h4>
+              <div class="file-upload">
+                <div class="file-item">
+                  <input type="text" placeholder="File Title" class="file-title">
+                  <select class="file-type">
+                    <option value="video">Video</option>
+                    <option value="document">Document</option>
+                  </select>
+                  <input type="text" placeholder="File URL" class="file-url">
+                  <textarea placeholder="File Description" class="file-description"></textarea>
+                </div>
+                <button class="add-file">+ Add File</button>
+              </div>
+            </div>
           </div>
         </div>
         <button id="addSection">+ Add Section</button>
@@ -185,3 +205,18 @@
   <script src="app.js"></script>
 </body>
 </html>
+
+<!-- My Courses Page -->
+<section id="myCourses" class="page">
+  <h2>My Enrolled Courses</h2>
+  <div id="enrolledCoursesList" class="courses-grid"></div>
+</section>
+<nav>
+  <ul>
+    <li><a href="#" class="nav-link" data-page="home">Home</a></li>
+    <li><a href="#" class="nav-link" data-page="courses">Courses</a></li>
+    <li><a href="#" class="nav-link" data-page="myCourses">My Courses</a></li>
+    <li><a href="#" class="nav-link" data-page="publish">Publish Content</a></li>
+    <li><a href="#" class="nav-link" data-page="feedback">Feedback</a></li>
+  </ul>
+</nav>

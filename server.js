@@ -72,6 +72,7 @@ app.get('/api/courses', async (req, res) => {
 });
 
 // Get course by ID
+// Get course by ID
 app.get('/api/courses/:id', async (req, res) => {
   try {
     // Get course details
@@ -95,17 +96,64 @@ app.get('/api/courses/:id', async (req, res) => {
       ORDER BY order_index
     `, [req.params.id]);
     
-    // Format the response to match the expected structure in the frontend
+    // Check if course_content table exists
+    const [tables] = await pool.query(`
+      SELECT TABLE_NAME 
+      FROM information_schema.TABLES 
+      WHERE TABLE_SCHEMA = 'course_publishing_system' AND TABLE_NAME = 'course_content'
+    `);
+    
+    let sections = [];
+    
+    // If content table exists, get content for each section
+    if (tables.length > 0) {
+      for (const section of sectionRows) {
+        const [contentRows] = await pool.query(
+          'SELECT * FROM course_content WHERE section_id = ? ORDER BY created_at',
+          [section.id]
+        );
+        
+        sections.push({
+          id: section.id,
+          title: section.title,
+          text: section.description,
+          content: contentRows.map(item => ({
+            id: item.id,
+            title: item.title,
+            type: item.type,
+            url: item.url,
+            description: item.description
+          }))
+        });
+      }
+    } else {
+      sections = sectionRows.map(section => ({
+        id: section.id,
+        title: section.title,
+        text: section.description,
+        content: []
+      }));
+    }
+    
+    // Check if user is enrolled
+    let isEnrolled = false;
+    if (req.query.userId) {
+      const [enrollmentRows] = await pool.query(
+        'SELECT * FROM course_enrollments WHERE course_id = ? AND user_id = ?',
+        [req.params.id, req.query.userId]
+      );
+      isEnrolled = enrollmentRows.length > 0;
+    }
+    
+    // Format the response
     const course = {
       id: courseRows[0].id,
       title: courseRows[0].title,
       description: courseRows[0].description,
       instructor: courseRows[0].instructor,
       category: courseRows[0].category,
-      content: sectionRows.map(section => ({
-        title: section.title,
-        text: section.description
-      }))
+      content: sections,
+      isEnrolled: isEnrolled
     };
     
     res.json({ success: true, data: course });
