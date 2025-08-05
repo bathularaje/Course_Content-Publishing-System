@@ -451,7 +451,7 @@ app.post('/api/auth/login', async (req, res) => {
     
     const user = userRows[0];
     
-    // For now, do a direct password comparison since bcrypt isn't set up
+  
     if (user.password !== password) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -503,4 +503,174 @@ app.post('/api/auth/register', async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// ENROLLMENT API
+
+// Enroll in a course
+app.post('/api/courses/:id/enroll', async (req, res) => {
+  const { userId } = req.body;
+  const courseId = req.params.id;
+  
+  if (!userId) {
+    return res.status(400).json({ success: false, message: 'Please provide userId' });
+  }
+  
+  try {
+    // Check if course exists
+    const [courseRows] = await pool.query('SELECT * FROM courses WHERE id = ?', [courseId]);
+    if (courseRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+    
+    // Check if user is already enrolled
+    const [enrollmentRows] = await pool.query(
+      'SELECT * FROM course_enrollments WHERE course_id = ? AND user_id = ?',
+      [courseId, userId]
+    );
+    
+    if (enrollmentRows.length > 0) {
+      return res.status(400).json({ success: false, message: 'Already enrolled in this course' });
+    }
+    
+    // Create enrollment
+    await pool.query(
+      'INSERT INTO course_enrollments (course_id, user_id) VALUES (?, ?)',
+      [courseId, userId]
+    );
+    
+    res.status(201).json({ success: true, message: 'Enrolled successfully' });
+  } catch (error) {
+    console.error('Error enrolling in course:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Get enrolled courses for a user
+app.get('/api/users/:id/enrollments', async (req, res) => {
+  const userId = req.params.id;
+  
+  try {
+    const [rows] = await pool.query(`
+      SELECT c.*, u.name as instructor, cat.name as category 
+      FROM course_enrollments e
+      JOIN courses c ON e.course_id = c.id
+      LEFT JOIN users u ON c.instructor_id = u.id
+      LEFT JOIN categories cat ON c.category_id = cat.id
+      WHERE e.user_id = ?
+    `, [userId]);
+    
+    const enrolledCourses = rows.map(course => ({
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      instructor: course.instructor,
+      category: course.category,
+      enrolledAt: course.enrolled_at
+    }));
+    
+    res.json({ success: true, data: enrolledCourses });
+  } catch (error) {
+    console.error('Error fetching enrolled courses:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// COURSE CONTENT API
+
+// Add course content (videos/documents)
+app.post('/api/courses/:id/content', async (req, res) => {
+  const { title, type, url, description, sectionId } = req.body;
+  const courseId = req.params.id;
+  
+  if (!title || !type || !url || !sectionId) {
+    return res.status(400).json({ success: false, message: 'Please provide title, type, url, and sectionId' });
+  }
+  
+  try {
+    // Check if course exists
+    const [courseRows] = await pool.query('SELECT * FROM courses WHERE id = ?', [courseId]);
+    if (courseRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+    
+    // Check if section exists
+    const [sectionRows] = await pool.query('SELECT * FROM course_sections WHERE id = ? AND course_id = ?', [sectionId, courseId]);
+    if (sectionRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Section not found' });
+    }
+    
+    // Create course_content table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS course_content (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        section_id INT NOT NULL,
+        title VARCHAR(200) NOT NULL,
+        type ENUM('video', 'document') NOT NULL,
+        url VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (section_id) REFERENCES course_sections(id) ON DELETE CASCADE
+      )
+    `);
+    
+    // Insert content
+    const [result] = await pool.query(
+      'INSERT INTO course_content (section_id, title, type, url, description) VALUES (?, ?, ?, ?, ?)',
+      [sectionId, title, type, url, description]
+    );
+    
+    const contentId = result.insertId;
+    
+    res.status(201).json({ 
+      success: true, 
+      data: {
+        id: contentId,
+        title,
+        type,
+        url,
+        description,
+        sectionId
+      } 
+    });
+  } catch (error) {
+    console.error('Error adding course content:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Get content for a course section
+app.get('/api/sections/:id/content', async (req, res) => {
+  const sectionId = req.params.id;
+  
+  try {
+    // Check if course_content table exists
+    const [tables] = await pool.query(`
+      SELECT TABLE_NAME 
+      FROM information_schema.TABLES 
+      WHERE TABLE_SCHEMA = 'course_publishing_system' AND TABLE_NAME = 'course_content'
+    `);
+    
+    if (tables.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+    
+    const [rows] = await pool.query(
+      'SELECT * FROM course_content WHERE section_id = ? ORDER BY created_at',
+      [sectionId]
+    );
+    
+    const content = rows.map(item => ({
+      id: item.id,
+      title: item.title,
+      type: item.type,
+      url: item.url,
+      description: item.description
+    }));
+    
+    res.json({ success: true, data: content });
+  } catch (error) {
+    console.error('Error fetching section content:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
