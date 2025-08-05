@@ -71,7 +71,7 @@ CREATE TABLE course_enrollments (
 
 -- Insert default admin user
 INSERT INTO users (name, email, password, role) VALUES
-('Admin', 'admin@example.com', '$2b$10$XKXz0Zv5s5K5K5K5K5K5K.K5K5K5K5K5K5K5K5K5K5K5K5K5K5', 'admin');
+('Admin', 'admin@example.com', 'admin123', 'admin');
 
 -- Insert default categories
 INSERT INTO categories (name, description) VALUES

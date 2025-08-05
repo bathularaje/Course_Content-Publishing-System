@@ -15,7 +15,7 @@ app.use(express.static('public'));
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'Patel@123',
+  password: process.env.DB_PASSWORD || '',
   database: 'course_publishing_system',
   waitForConnections: true,
   connectionLimit: 10,
@@ -439,10 +439,10 @@ app.post('/api/auth/login', async (req, res) => {
   }
   
   try {
-    // In a real app, you would use bcrypt to compare hashed passwords
+    // First, find the user by email only
     const [userRows] = await pool.query(
-      'SELECT * FROM users WHERE email = ? AND password = ?',
-      [email, password]
+      'SELECT * FROM users WHERE email = ?',
+      [email]
     );
     
     if (userRows.length === 0) {
@@ -450,6 +450,12 @@ app.post('/api/auth/login', async (req, res) => {
     }
     
     const user = userRows[0];
+    
+    // For now, do a direct password comparison since bcrypt isn't set up
+    if (user.password !== password) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+    
     const { password: _, ...userWithoutPassword } = user;
     
     res.json({ success: true, data: userWithoutPassword });
@@ -475,7 +481,7 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email already in use' });
     }
     
-    // In a real app, you would hash the password with bcrypt
+    // Store password as plain text for now
     const [result] = await pool.query(
       'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
       [name, email, password, role || 'student']

@@ -13,7 +13,7 @@ A simple web application for publishing course content and collecting feedback.
 
 - **Frontend**: HTML, CSS, JavaScript
 - **Backend**: Node.js, Express.js
-- **Database**: In-memory storage (can be replaced with MongoDB)
+- **Database**:
 
 ## Project Structure
 

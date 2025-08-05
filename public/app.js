@@ -296,12 +296,15 @@ async function login() {
   const email = document.getElementById('loginEmail').value;
   const password = document.getElementById('loginPassword').value;
   
+  console.log('Login attempt:', { email });
+  
   if (!email || !password) {
     alert('Please fill in all fields');
     return;
   }
   
   try {
+    console.log('Sending login request...');
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
@@ -310,7 +313,9 @@ async function login() {
       body: JSON.stringify({ email, password })
     });
     
+    console.log('Login response status:', response.status);
     const data = await response.json();
+    console.log('Login response data:', data);
     
     if (data.success) {
       currentUser = data.data;
@@ -540,4 +545,33 @@ navigateToHome();
 
 function navigateToHome() {
   navigateTo('home');
+}
+
+
+// Filter courses based on search and category
+function filterCourses() {
+  const searchTerm = courseSearch.value.toLowerCase();
+  const categoryValue = categoryFilter.value;
+  
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchTerm) || 
+                         course.description.toLowerCase().includes(searchTerm);
+    const matchesCategory = categoryValue === '' || course.category === categoryValue;
+    
+    return matchesSearch && matchesCategory;
+  });
+  
+  renderCourses(filteredCourses);
+}
+
+// Add a new content section to the publish form
+function addContentSection() {
+  const sectionDiv = document.createElement('div');
+  sectionDiv.className = 'content-section';
+  sectionDiv.innerHTML = `
+    <input type="text" placeholder="Section Title" class="section-title">
+    <textarea placeholder="Section Content" class="section-content"></textarea>
+  `;
+  
+  contentSections.appendChild(sectionDiv);
 }
