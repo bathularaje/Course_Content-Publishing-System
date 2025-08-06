@@ -72,7 +72,6 @@ app.get('/api/courses', async (req, res) => {
 });
 
 // Get course by ID
-// Get course by ID
 app.get('/api/courses/:id', async (req, res) => {
   try {
     // Get course details
@@ -151,6 +150,7 @@ app.get('/api/courses/:id', async (req, res) => {
       title: courseRows[0].title,
       description: courseRows[0].description,
       instructor: courseRows[0].instructor,
+      instructor_id: courseRows[0].instructor_id, // Add instructor_id to the response
       category: courseRows[0].category,
       content: sections,
       isEnrolled: isEnrolled
@@ -300,7 +300,6 @@ app.put('/api/courses/:id', async (req, res) => {
         await connection.query(`UPDATE courses SET ${updates.join(', ')} WHERE id = ?`, values);
       }
       
-      // Update course sections if provided
       if (content) {
         // Delete existing sections
         await connection.query('DELETE FROM course_sections WHERE course_id = ?', [courseId]);
@@ -553,6 +552,9 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+// Export app for testing
+module.exports = app;
+
 // ENROLLMENT API
 
 // Enroll in a course
@@ -600,7 +602,8 @@ app.get('/api/users/:id/enrollments', async (req, res) => {
   
   try {
     const [rows] = await pool.query(`
-      SELECT c.*, u.name as instructor, cat.name as category 
+      SELECT c.*, u.name as instructor, cat.name as category, 
+      c.instructor_id, e.enrolled_at
       FROM course_enrollments e
       JOIN courses c ON e.course_id = c.id
       LEFT JOIN users u ON c.instructor_id = u.id
@@ -613,6 +616,7 @@ app.get('/api/users/:id/enrollments', async (req, res) => {
       title: course.title,
       description: course.description,
       instructor: course.instructor,
+      instructor_id: course.instructor_id,
       category: course.category,
       enrolledAt: course.enrolled_at
     }));
