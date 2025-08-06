@@ -371,7 +371,8 @@ function renderCourseDetails(course) {
       <p>${course.description}</p>
       ${currentUser && (currentUser.id === course.instructor_id || currentUser.role === 'admin') ? 
         `<div class="course-actions">
-          <button id="deleteCourseBtn" class="delete-btn">Delete Course</button>
+          <button id="editCourseBtn" class="edit-button">Edit Course</button>
+          <button id="deleteCourseBtn" class="delete-button">Delete Course</button>
         </div>` : ''}
     </div>
     <div class="course-content">
@@ -417,6 +418,12 @@ function renderCourseDetails(course) {
   const deleteCourseBtn = document.getElementById('deleteCourseBtn');
   if (deleteCourseBtn) {
     deleteCourseBtn.addEventListener('click', deleteCourse);
+  }
+  
+  // Add event listener for edit course button
+  const editCourseBtn = document.getElementById('editCourseBtn');
+  if (editCourseBtn) {
+    editCourseBtn.addEventListener('click', () => openEditCourseModal(course));
   }
 }
 
@@ -518,7 +525,8 @@ function renderEnrolledCourses(coursesData) {
         <div class="course-actions">
           <button class="view-course" data-id="${course.id}">Continue Learning</button>
           ${(currentUser && (currentUser.id === course.instructor_id || currentUser.role === 'admin')) ? 
-            `<button class="delete-course" data-id="${course.id}">Delete Course</button>` : ''}
+            `<button class="edit-course edit-button" data-id="${course.id}">Edit Course</button>
+             <button class="delete-course delete-button" data-id="${course.id}">Delete Course</button>` : ''}
         </div>
       </div>
     `;
@@ -531,6 +539,23 @@ function renderEnrolledCourses(coursesData) {
     button.addEventListener('click', () => {
       const courseId = button.getAttribute('data-id');
       fetchCourseDetails(courseId);
+    });
+  });
+
+  // Add event listeners to edit course buttons
+  document.querySelectorAll('#enrolledCoursesList .edit-course').forEach(button => {
+    button.addEventListener('click', async () => {
+      const courseId = button.getAttribute('data-id');
+      try {
+        const response = await fetch(`/api/courses/${courseId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          openEditCourseModal(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching course details for editing:', error);
+      }
     });
   });
 
@@ -853,6 +878,10 @@ addSection.addEventListener('click', addContentSection);
 // Publish course
 publishCourse.addEventListener('click', publishCourseHandler);
 
+// Edit course modal
+document.getElementById('addEditSection').addEventListener('click', () => addEditContentSection());
+document.getElementById('updateCourseBtn').addEventListener('click', updateCourse);
+
 // Auth
 loginBtn.addEventListener('click', () => openModal(loginModal));
 registerBtn.addEventListener('click', () => openModal(registerModal));
@@ -944,3 +973,123 @@ async function deleteCourse() {
   await deleteCourseById(currentCourse.id);
   navigateTo('courses');
 }
+
+// Open edit course modal
+function openEditCourseModal(course) {
+  const modal = document.getElementById('editCourseModal');
+  const form = document.getElementById('editCourseForm');
+  const contentSections = document.getElementById('editContentSections');
+  
+  // Set course ID in a hidden field
+  document.getElementById('editCourseId').value = course.id;
+  
+  // Fill in course details
+  document.getElementById('editCourseTitle').value = course.title;
+  document.getElementById('editCourseDescription').value = course.description;
+  document.getElementById('editCourseCategory').value = course.category;
+  
+  // Clear existing content sections
+  contentSections.innerHTML = '<h3>Content Sections</h3>';
+  
+  // Add content sections
+  course.content.forEach((section, index) => {
+    addEditContentSection(section.title, section.text);
+  });
+  
+  // Show the modal
+  modal.style.display = 'block';
+}
+
+// Add content section to edit form
+function addEditContentSection(title = '', content = '') {
+  const contentSections = document.getElementById('editContentSections');
+  const sectionId = Date.now(); // Unique ID for the section
+  
+  const section = document.createElement('div');
+  section.className = 'edit-content-section';
+  section.dataset.id = sectionId;
+  
+  section.innerHTML = `
+    <button type="button" class="remove-section" onclick="removeEditSection(${sectionId})">×</button>
+    <div class="form-group">
+      <label for="sectionTitle-${sectionId}">Section Title</label>
+      <input type="text" id="sectionTitle-${sectionId}" class="section-title" value="${title}" required>
+    </div>
+    <div class="form-group">
+      <label for="sectionContent-${sectionId}">Section Content</label>
+      <textarea id="sectionContent-${sectionId}" class="section-content" required>${content}</textarea>
+    </div>
+  `;
+  
+  contentSections.appendChild(section);
+}
+
+// Remove content section from edit form
+function removeEditSection(sectionId) {
+  const section = document.querySelector(`.edit-content-section[data-id="${sectionId}"]`);
+  if (section) {
+    section.remove();
+  }
+}
+
+// Update course
+async function updateCourse(event) {
+  event.preventDefault();
+  
+  const courseId = document.getElementById('editCourseId').value;
+  const title = document.getElementById('editCourseTitle').value;
+  const description = document.getElementById('editCourseDescription').value;
+  const category = document.getElementById('editCourseCategory').value;
+  
+  // Get content sections
+  const contentSections = [];
+  document.querySelectorAll('.edit-content-section').forEach(section => {
+    const sectionTitle = section.querySelector('.section-title').value;
+    const sectionContent = section.querySelector('.section-content').value;
+    
+    if (sectionTitle && sectionContent) {
+      contentSections.push({
+        title: sectionTitle,
+        text: sectionContent
+      });
+    }
+  });
+  
+  // Validate form
+  if (!title || !description || contentSections.length === 0) {
+    alert('Please fill in all required fields and add at least one content section');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/courses/${courseId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        category,
+        content: contentSections
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('Course updated successfully!');
+      closeModal(document.getElementById('editCourseModal'));
+      
+      // Refresh course details
+      fetchCourseDetails(courseId);
+    } else {
+      alert(data.message || 'Failed to update course');
+    }
+  } catch (error) {
+    console.error('Error updating course:', error);
+    alert('Failed to update course');
+  }
+}
+
+// ... existing code ...

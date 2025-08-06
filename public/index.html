@@ -200,6 +200,39 @@
         <p>Already have an account? <a href="#" id="showLogin">Login</a></p>
       </div>
     </div>
+
+    <!-- Edit Course Modal -->
+    <div id="editCourseModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Edit Course</h2>
+        <form id="editCourseForm">
+          <input type="hidden" id="editCourseId">
+          <div class="form-group">
+            <label for="editCourseTitle">Course Title</label>
+            <input type="text" id="editCourseTitle" required>
+          </div>
+          <div class="form-group">
+            <label for="editCourseDescription">Description</label>
+            <textarea id="editCourseDescription" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="editCourseCategory">Category</label>
+            <select id="editCourseCategory">
+              <option value="Programming">Programming</option>
+              <option value="Web Development">Web Development</option>
+              <option value="Data Science">Data Science</option>
+            </select>
+          </div>
+          <div id="editContentSections">
+            <h3>Content Sections</h3>
+            <!-- Content sections will be added dynamically -->
+          </div>
+          <button type="button" id="addEditSection">+ Add Section</button>
+          <button type="button" id="updateCourseBtn">Update Course</button>
+        </form>
+      </div>
+    </div>
   </main>
 
   <footer>
